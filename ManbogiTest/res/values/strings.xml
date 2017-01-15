@@ -4,5 +4,9 @@
     <string name="app_name">ManbogiTest</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    
+    <string name="text1">현재 위치</string>
+    <string name="start">START</string>
+    <string name="stop">STOP</string>
 
 </resources>
