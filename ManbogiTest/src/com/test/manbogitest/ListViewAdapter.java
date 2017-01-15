@@ -35,7 +35,6 @@ public class ListViewAdapter extends BaseAdapter {
 	public View getView(int arg0, View convertView, ViewGroup parent) {
 		// TODO Auto-generated method stub
 		
-//		final int pos = arg0;
         final Context context = parent.getContext();
         
         if (convertView == null) {

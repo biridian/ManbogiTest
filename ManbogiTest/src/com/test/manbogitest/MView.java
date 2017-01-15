@@ -101,8 +101,6 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
 		Date date = new Date(now);
 		SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy.MM.dd");
 		strCurDate = CurDateFormat.format(date);
-		Log.d("MyLog", "strCurDate: "+strCurDate);
-		
 		
 		String sql = "select mDate,mCnt from " +TABLE_NAME2+" where mDate='"+strCurDate+"';";
         Cursor result = db.rawQuery(sql, null);
@@ -113,7 +111,6 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
         	mCnt = result.getInt(1);
         	
         	tv1.setText(""+mCnt);
-//        	mDis = mCnt * 80;
         	tv2.setText(calDis(mCnt));
         }
         result.close();
@@ -129,19 +126,8 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
 		@Override
 		public void onLocationChanged(Location location) {
 			// TODO Auto-generated method stub
-			Log.d("MyLog", "onLocationChanged, location:" + location);
             longitude = location.getLongitude(); //경도
             latitude = location.getLatitude();   //위도
-//            double altitude = location.getAltitude();   //고도
-//            float accuracy = location.getAccuracy();    //정확도
-//            String provider = location.getProvider();   //위치제공자
-
-            Log.d("MyLog", "longitude: " + longitude);
-            Log.d("MyLog", "latitude: " + latitude);
-            
-            
-            
-            
             
             new Thread() {
                 public void run() {
@@ -154,44 +140,31 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
                 }
             }.start();
             
-            
-            
-            
-            
-            
-            
-            
-            
 		}
 
 		@Override
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 			// TODO Auto-generated method stub
-			Log.d("MyLog", "onStatusChanged");
 		}
 
 		@Override
 		public void onProviderEnabled(String provider) {
 			// TODO Auto-generated method stub
-			Log.d("MyLog", "onProviderEnabled");
 		}
 
 		@Override
 		public void onProviderDisabled(String provider) {
 			// TODO Auto-generated method stub
-			Log.d("MyLog", "onProviderDisabled");
 			tv3.setText("GPS 위성 사용을 체크하셔야 정확한 위치 서비스가 가능합니다.");
 		}
 		
 	};
 	
 	private String getNaverApi(){
-		Log.d("MyLog", "getNaverApi");
 		String apiURL = "https://openapi.naver.com/v1/map/reversegeocode?query=" + longitude+","+latitude;
         String result = "";
 		
         try {
-        	Log.d("MyLog", "apiURL: " + apiURL);
 			URL url = new URL(apiURL);
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 			con.setRequestMethod("GET");
@@ -199,9 +172,9 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
 			con.setRequestProperty("X-Naver-Client-Secret", clientSecret);
 			int responseCode = con.getResponseCode();
 			BufferedReader br;
-			if(responseCode==200) { // 정상 호출
+			if(responseCode==200) {  
 			    br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			} else {  // 에러 발생
+			} else {  
 			    br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
 			}
 			String inputLine;
@@ -211,7 +184,6 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
             }
             br.close();
             result = response.toString();
-            Log.d("MyLog", "result: " + result);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -235,14 +207,10 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
         	String dongmyun = "";
         	try {
         		
-        		Log.d("MyLog", "JSON");
         		JSONObject jObject = new JSONObject(naverApi);
-        		Log.d("MyLog", "JSON2");
         		
         		JSONObject jObject2 = jObject.getJSONObject("result");
-        		Log.d("MyLog", "JSON3");
         		JSONArray jarray = jObject2.getJSONArray("items");
-        		Log.d("MyLog", "JSON4");
         		if(jarray.length() > 0){
         			JSONObject jObject3 = jarray.getJSONObject(0);
         			JSONObject jObject4 = jObject3.getJSONObject("addrdetail");
@@ -251,31 +219,11 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
         			sigugun = jObject4.getString("sigugun");
 	                dongmyun = jObject4.getString("dongmyun");
 	                
-	                Log.d("MyLog", "sigugun: " + sigugun);
-	                Log.d("MyLog", "dongmyun: " + dongmyun);
         		}
         		
-        		
-        		
-        		
-//				JSONArray jarray = new JSONArray(naverApi);
-//				Log.d("MyLog", "JSON2");
-//				if(jarray.length() > 0){
-//					JSONObject jObject = jarray.getJSONObject(0);
-
-//					sigugun = jObject.getString("sigugun");
-//	                dongmyun = jObject.getString("dongmyun");
-//
-//	                Log.d("MyLog", "sigugun: " + sigugun);
-//	                Log.d("MyLog", "dongmyun: " + dongmyun);
-					
-//					JSONObject jObject2 = jObject.getJSONObject("result");
-//					Log.d("MyLog", "jObject: " + jObject.toString());
-//				}
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				Log.d("MyLog", "JSONException: "+e.toString());
 			}
         	
             tv3.setText(sigugun+" "+dongmyun);
@@ -287,14 +235,12 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
         
         if(permissionCheck == PackageManager.PERMISSION_GRANTED){
         	
-        	Log.d("MyLog", "permissionCheck 1: " + permissionCheck);
-        	
         	lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         	lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 100, mLocationListener);
-//            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, // 등록할 위치제공자
-//                    100, // 통지사이의 최소 시간간격 (miliSecond)
-//                    1, // 통지사이의 최소 변경거리 (m)
+//            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+//                    100, 
+//                    1, 
 //                    mLocationListener);
 
 
@@ -304,35 +250,6 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
         }
 	}
 
-//	public void checkPermission() {
-//		int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-//        
-//        Log.d("MyLog", "permissionCheck: "+permissionCheck);
-//        
-//        if(permissionCheck== PackageManager.PERMISSION_DENIED){
-//        	Log.d("MyLog", "PERMISSION_DENIED 1");
-//        	ActivityCompat.requestPermissions(MViewActivity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-//        }
-//	}
-//	
-//	@Override
-//	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-//		switch (requestCode) {
-//			case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION:
-//				if (grantResults.length > 0	&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//					Log.d("MyLog", "PERMISSION_GRANTED");
-//					
-//				} else {
-//					Log.d("MyLog", "PERMISSION_DENIED 2");
-//					
-//					tv3.setText("권한을 승인해주세요");
-//				}
-//
-//		}
-//	}
-
-
-		
 
 	@Override
 	public void onClick(View arg0) {
@@ -364,20 +281,7 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
 	        btn.setText("STOP");
 	        
 	        db.execSQL("update "+TABLE_NAME1+" set cflag='1';");
-
-
 	        
-//	        ContentValues values = new ContentValues();
-//	        values.put("cflag", 1);
-//	        SQLiteDatabase db = new DatabaseHelper(getApplicationContext()).getWritableDatabase();
-//	        
-////	        if (-1 != db.insert(DB_NAME, null, values)) {
-////                Toast.makeText(getApplicationContext(), "save", Toast.LENGTH_SHORT).show();
-////            }
-//	        
-//	        db.insert(DB_NAME, null, values);
-//	        
-//            db.close();
 		}
 		
 	}
@@ -394,13 +298,10 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
         Cursor result = db.rawQuery(sql, null);
         
         if(!result.moveToNext()){
-        	Log.d("MyLog", "sres == null");
         	db.execSQL("insert into "+TABLE_NAME1+" (cflag) values('0');");
         } else {
         	
         	String sres = result.getString(0);
-            
-            Log.d("MyLog", "sres not null: "+sres);
             
             if("1".equals(sres)){
             	cflag = false;
@@ -448,12 +349,8 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
                 speed = Math.abs(x + y + z - lastX - lastY - lastZ) / gabOfTime * 10000;
  
                 if (speed > SHAKE_THRESHOLD) {
-                    // 이벤트발생!!
-                	Log.d("MyLog", "SHAKE");
                 	mCnt++;
                 	tv1.setText(""+mCnt);
-//                	btn.setText("");
-//                	mDis = mCnt * 80;
                 	tv2.setText(calDis(mCnt));
                 }
  

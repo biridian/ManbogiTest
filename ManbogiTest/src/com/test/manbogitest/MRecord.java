@@ -60,7 +60,6 @@ public class MRecord extends Activity {
 		// TODO Auto-generated method stub
 		super.onResume();
 		
-		Log.d("MyLog", "onResume");
 	}
 
 	@Override

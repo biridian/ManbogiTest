@@ -82,10 +82,7 @@ public class MainActivity extends TabActivity {
     public void checkPermission() {
 		int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         
-        Log.d("MyLog", "permissionCheck: "+permissionCheck);
-        
         if(permissionCheck== PackageManager.PERMISSION_DENIED){
-        	Log.d("MyLog", "PERMISSION_DENIED 1");
         	ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
 	}
@@ -95,11 +92,8 @@ public class MainActivity extends TabActivity {
 		switch (requestCode) {
 			case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION:
 				if (grantResults.length > 0	&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					Log.d("MyLog", "PERMISSION_GRANTED");
 					locPermission = true;
-//					MView.locPermissionCheck();
 				} else {
-					Log.d("MyLog", "PERMISSION_DENIED 2");
 					locPermission = false;
 				}
 
@@ -115,18 +109,12 @@ public class MainActivity extends TabActivity {
 		
 		super.onStop();
 		
-		Log.d("MyLog", "onStop");
-		
-		
 	}
 	
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		
-		Log.d("MyLog", "onStart");
-		
 		
 		mStop();
 	}
@@ -136,7 +124,6 @@ public class MainActivity extends TabActivity {
 		// TODO Auto-generated method stub
 		super.onPause();
 		
-		Log.d("MyLog", "onPause");
 	}
 	
 	@Override
@@ -144,7 +131,6 @@ public class MainActivity extends TabActivity {
 		// TODO Auto-generated method stub
 		super.onResume();
 		
-		Log.d("MyLog", "onResume");
 	}
 	
 	public void mStart() {
@@ -155,12 +141,4 @@ public class MainActivity extends TabActivity {
 		stopService(new Intent(this, MService.class));
 	}
 	
-//	public void startOverlayWindowService(Context context) {
-//	   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-//	           && !Settings.canDrawOverlays(context)) {
-//	       getView().onObtainingPermissionOverlayWindow();
-//	   } else {
-//	       getView().onStartOverlay();
-//	   }
-//	}
 }

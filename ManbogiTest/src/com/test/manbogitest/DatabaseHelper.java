@@ -24,9 +24,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		String sql2 = "CREATE TABLE " + MView.TABLE_NAME2 + "(_id INTEGER PRIMARY KEY AUTOINCREMENT, mDate TEXT, mCnt INTEGER)";
 		arg0.execSQL(sql1);
 		arg0.execSQL(sql2);
-//		arg0.execSQL("insert into "+MView.TABLE_NAME1+" (cflag) values('0');");
-
-
 	}
 
 	@Override
