@@ -1,16 +1,29 @@
 package com.test.manbogitest;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.TabActivity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TabHost;
+import android.widget.Toast;
 
 
 public class MainActivity extends TabActivity {
 
+	public final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+	public static boolean locPermission;
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,8 +45,17 @@ public class MainActivity extends TabActivity {
 		spec = tabHost.newTabSpec("mRecord").setIndicator("만보기 기록").setContent(intent);
 		tabHost.addTab(spec);
 
+		checkPermission();
 
-
+		
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+			if(!Settings.canDrawOverlays(this)){
+				Toast.makeText(getApplicationContext(), "manbogitest 앱의 '다른 앱 위에 표시되는 앱'설정 허용이 필요합니다.", Toast.LENGTH_LONG).show();
+				Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+		        startActivity(myIntent);
+			} 
+	        
+	    }
 
     }
 
@@ -55,4 +77,90 @@ public class MainActivity extends TabActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+    
+    
+    public void checkPermission() {
+		int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        
+        Log.d("MyLog", "permissionCheck: "+permissionCheck);
+        
+        if(permissionCheck== PackageManager.PERMISSION_DENIED){
+        	Log.d("MyLog", "PERMISSION_DENIED 1");
+        	ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+	}
+	
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+		switch (requestCode) {
+			case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION:
+				if (grantResults.length > 0	&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					Log.d("MyLog", "PERMISSION_GRANTED");
+					locPermission = true;
+//					MView.locPermissionCheck();
+				} else {
+					Log.d("MyLog", "PERMISSION_DENIED 2");
+					locPermission = false;
+				}
+
+		}
+	}
+	
+	@Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+		if(Settings.canDrawOverlays(this)){
+			mStart();
+		}
+		
+		super.onStop();
+		
+		Log.d("MyLog", "onStop");
+		
+		
+	}
+	
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+		
+		Log.d("MyLog", "onStart");
+		
+		
+		mStop();
+	}
+	
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		
+		Log.d("MyLog", "onPause");
+	}
+	
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		
+		Log.d("MyLog", "onResume");
+	}
+	
+	public void mStart() {
+		startService(new Intent(this, MService.class));
+	}
+	
+	public void mStop() {
+		stopService(new Intent(this, MService.class));
+	}
+	
+//	public void startOverlayWindowService(Context context) {
+//	   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+//	           && !Settings.canDrawOverlays(context)) {
+//	       getView().onObtainingPermissionOverlayWindow();
+//	   } else {
+//	       getView().onStartOverlay();
+//	   }
+//	}
 }

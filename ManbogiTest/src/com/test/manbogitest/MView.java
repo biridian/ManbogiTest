@@ -1,18 +1,40 @@
 package com.test.manbogitest;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,6 +43,11 @@ import android.widget.TextView;
 
 public class MView extends Activity implements View.OnClickListener, SensorEventListener {
 
+	private Activity MViewActivity = this;
+		
+	String clientId = "Z1GneJil_T1B02b_zge0";//애플리케이션 클라이언트 아이디값";
+    String clientSecret = "rBH0cC4PYk";//애플리케이션 클라이언트 시크릿값";
+    
 	private long lastTime;
     private float speed;
     private float lastX;
@@ -42,11 +69,15 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
     
     private boolean cflag = false;
     Button btn;
-    TextView tv1, tv2;
-    int mCnt = 0;
+    TextView tv1, tv2, tv3;
+    public static int mCnt = 0;
     int mDis;
     String sDis, strCurDate;
     SQLiteDatabase db;
+    
+//    public final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    LocationManager lm;
+    double longitude, latitude;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +90,7 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
 
 		tv1 = (TextView)findViewById(R.id.textView1);
 		tv2 = (TextView)findViewById(R.id.textView2);
+		tv3 = (TextView)findViewById(R.id.textView3);
 
 		db = new DatabaseHelper(getApplicationContext()).getWritableDatabase();
 		
@@ -87,10 +119,220 @@ public class MView extends Activity implements View.OnClickListener, SensorEvent
         result.close();
         
         
+        locPermissionCheck();
         
-//        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR);
-
+        
 	}
+	
+	private final LocationListener mLocationListener = new LocationListener() {
+
+		@Override
+		public void onLocationChanged(Location location) {
+			// TODO Auto-generated method stub
+			Log.d("MyLog", "onLocationChanged, location:" + location);
+            longitude = location.getLongitude(); //경도
+            latitude = location.getLatitude();   //위도
+//            double altitude = location.getAltitude();   //고도
+//            float accuracy = location.getAccuracy();    //정확도
+//            String provider = location.getProvider();   //위치제공자
+
+            Log.d("MyLog", "longitude: " + longitude);
+            Log.d("MyLog", "latitude: " + latitude);
+            
+            
+            
+            
+            
+            new Thread() {
+                public void run() {
+                	String naverApi = getNaverApi();
+                    Bundle bun = new Bundle();
+                    bun.putString("NAVER_API", naverApi);
+                    Message msg = handler.obtainMessage();
+                    msg.setData(bun);
+                    handler.sendMessage(msg);
+                }
+            }.start();
+            
+            
+            
+            
+            
+            
+            
+            
+            
+		}
+
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+			// TODO Auto-generated method stub
+			Log.d("MyLog", "onStatusChanged");
+		}
+
+		@Override
+		public void onProviderEnabled(String provider) {
+			// TODO Auto-generated method stub
+			Log.d("MyLog", "onProviderEnabled");
+		}
+
+		@Override
+		public void onProviderDisabled(String provider) {
+			// TODO Auto-generated method stub
+			Log.d("MyLog", "onProviderDisabled");
+			tv3.setText("GPS 위성 사용을 체크하셔야 정확한 위치 서비스가 가능합니다.");
+		}
+		
+	};
+	
+	private String getNaverApi(){
+		Log.d("MyLog", "getNaverApi");
+		String apiURL = "https://openapi.naver.com/v1/map/reversegeocode?query=" + longitude+","+latitude;
+        String result = "";
+		
+        try {
+        	Log.d("MyLog", "apiURL: " + apiURL);
+			URL url = new URL(apiURL);
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			con.setRequestMethod("GET");
+			con.setRequestProperty("X-Naver-Client-Id", clientId);
+			con.setRequestProperty("X-Naver-Client-Secret", clientSecret);
+			int responseCode = con.getResponseCode();
+			BufferedReader br;
+			if(responseCode==200) { // 정상 호출
+			    br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			} else {  // 에러 발생
+			    br = new BufferedReader(new InputStreamReader(con.getErrorStream()));
+			}
+			String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = br.readLine()) != null) {
+                response.append(inputLine);
+            }
+            br.close();
+            result = response.toString();
+            Log.d("MyLog", "result: " + result);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        return result;
+	}
+
+	Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            Bundle bun = msg.getData();
+            String naverApi = bun.getString("NAVER_API");
+            
+            String sigugun = "";
+        	String dongmyun = "";
+        	try {
+        		
+        		Log.d("MyLog", "JSON");
+        		JSONObject jObject = new JSONObject(naverApi);
+        		Log.d("MyLog", "JSON2");
+        		
+        		JSONObject jObject2 = jObject.getJSONObject("result");
+        		Log.d("MyLog", "JSON3");
+        		JSONArray jarray = jObject2.getJSONArray("items");
+        		Log.d("MyLog", "JSON4");
+        		if(jarray.length() > 0){
+        			JSONObject jObject3 = jarray.getJSONObject(0);
+        			JSONObject jObject4 = jObject3.getJSONObject("addrdetail");
+        			
+        			
+        			sigugun = jObject4.getString("sigugun");
+	                dongmyun = jObject4.getString("dongmyun");
+	                
+	                Log.d("MyLog", "sigugun: " + sigugun);
+	                Log.d("MyLog", "dongmyun: " + dongmyun);
+        		}
+        		
+        		
+        		
+        		
+//				JSONArray jarray = new JSONArray(naverApi);
+//				Log.d("MyLog", "JSON2");
+//				if(jarray.length() > 0){
+//					JSONObject jObject = jarray.getJSONObject(0);
+
+//					sigugun = jObject.getString("sigugun");
+//	                dongmyun = jObject.getString("dongmyun");
+//
+//	                Log.d("MyLog", "sigugun: " + sigugun);
+//	                Log.d("MyLog", "dongmyun: " + dongmyun);
+					
+//					JSONObject jObject2 = jObject.getJSONObject("result");
+//					Log.d("MyLog", "jObject: " + jObject.toString());
+//				}
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				Log.d("MyLog", "JSONException: "+e.toString());
+			}
+        	
+            tv3.setText(sigugun+" "+dongmyun);
+        }
+    };
+    
+	public void locPermissionCheck(){
+		int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        
+        if(permissionCheck == PackageManager.PERMISSION_GRANTED){
+        	
+        	Log.d("MyLog", "permissionCheck 1: " + permissionCheck);
+        	
+        	lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        	lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 100, mLocationListener);
+//            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, // 등록할 위치제공자
+//                    100, // 통지사이의 최소 시간간격 (miliSecond)
+//                    1, // 통지사이의 최소 변경거리 (m)
+//                    mLocationListener);
+
+
+
+        } else {
+        	tv3.setText("'이 기기의 위치에 액세스하기' 권한을 허용하셔야 현재 위치를 가져올 수 있습니다.");
+        }
+	}
+
+//	public void checkPermission() {
+//		int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+//        
+//        Log.d("MyLog", "permissionCheck: "+permissionCheck);
+//        
+//        if(permissionCheck== PackageManager.PERMISSION_DENIED){
+//        	Log.d("MyLog", "PERMISSION_DENIED 1");
+//        	ActivityCompat.requestPermissions(MViewActivity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+//        }
+//	}
+//	
+//	@Override
+//	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+//		switch (requestCode) {
+//			case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION:
+//				if (grantResults.length > 0	&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//					Log.d("MyLog", "PERMISSION_GRANTED");
+//					
+//				} else {
+//					Log.d("MyLog", "PERMISSION_DENIED 2");
+//					
+//					tv3.setText("권한을 승인해주세요");
+//				}
+//
+//		}
+//	}
+
+
+		
 
 	@Override
 	public void onClick(View arg0) {

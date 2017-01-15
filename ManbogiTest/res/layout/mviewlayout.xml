@@ -37,11 +37,18 @@
         android:layout_height="wrap_content"
         android:text="@string/text1"
         android:layout_gravity="center" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/text3"
+        android:id="@+id/textView3" />
     <Button 
         android:layout_width="300dp"
         android:layout_height="100dp"
         android:text="@string/start"
         android:textColor="@android:color/black"
         android:id="@+id/btn1" 
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"/>
 </LinearLayout>
